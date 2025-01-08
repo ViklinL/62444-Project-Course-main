@@ -38,10 +38,7 @@ def  filter_outliers(df, col_name):
 
 import matplotlib.pyplot as plt
 
-def plot_histogram(df, col_name):
-
-
-    
+def plot_histogram(df, col_name, car_colour):
     """
     Function to plot the histogram of a given column
     parameters:
@@ -49,16 +46,17 @@ def plot_histogram(df, col_name):
     df: pandas dataframe
 
     col_name: name of the column to plot the histogram for
+    
+    car_colour: color of the car (used in the plot title)
 
     returns: 
     --------
     None
-    
     """
 
     # Plot the histogram of the distribution
     plt.hist(df[col_name])
-    plt.title(f'Distribution of {col_name}')
+    plt.title(f'Distribution of {col_name} for the {car_colour} car')
     plt.xlabel(col_name)
     plt.ylabel('Frequency')
     plt.show()
