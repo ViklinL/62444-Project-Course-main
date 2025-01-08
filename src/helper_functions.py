@@ -55,19 +55,28 @@ def plot_histogram(df, col_name, car_colour):
     None
     """
 
-    # Determine the range of values in the column
-    min_value = int(df[col_name].min())
-    max_value = int(df[col_name].max())
+    plt.figure(figsize=(8, 5))
 
-    # Define bins to align with whole numbers
-    bins = range(min_value, max_value + 2)  # +2 ensures the last bin includes the max value
-
-    # Plot the histogram of the distribution
-    plt.hist(df[col_name], bins=bins, edgecolor='black', align='left')
+    if col_name == 'passenger_count':
+        # Determine integer-aligned bins
+        min_value = int(df[col_name].min())
+        max_value = int(df[col_name].max())
+        
+        bins = range(min_value, max_value + 2)
+        
+        # Plot histogram aligned to the left edge of each integer bin
+        plt.hist(df[col_name], bins=bins, edgecolor='black', align='left')
+        
+        # Force the x-axis to show integer ticks
+        plt.xticks(np.arange(min_value, max_value + 1, 1))
+    else:
+        # For continuous or non-integer columns, use 100 bins
+        plt.hist(df[col_name], bins=100, edgecolor='black')
+    
+    # Add labels and title
     plt.title(f'Distribution of {col_name} for the {car_colour} car')
     plt.xlabel(col_name)
     plt.ylabel('Frequency')
-    plt.xticks(np.arange(min_value, max_value + 1, 1))
+    
     plt.show()
-
     return None
