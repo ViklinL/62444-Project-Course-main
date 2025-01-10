@@ -204,37 +204,4 @@ def plot_violin(df, x_col, y_col, title, xlabel, ylabel, color='skyblue'):
 
 ####################################################################################################
 
-def plot_scatter(df, x_col, y_col, title, xlabel, ylabel):
-    """
-    Function to create a scatter plot for a given DataFrame and columns.
-    
-    Parameters:
-    -----------
-    df: pandas DataFrame
-        The DataFrame containing the data.
-    x_col: str
-        The name of the column for the x-axis.
-    y_col: str
-        The name of the column for the y-axis.
-    title: str
-        The title of the plot.
-    xlabel: str
-        The label for the x-axis.
-    ylabel: str
-        The label for the y-axis.
-    
-    Returns:
-    --------
-    None
-    """
-    # Create a scatter plot
-    sns.scatterplot(data=df, x=x_col, y=y_col, color='blue', alpha=0.6)
-
-    # Add labels and title
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.show()
-
-    return None
 
