@@ -29,7 +29,7 @@ def  filter_outliers(df, col_name):
     lower_bound = 0
 
     # Filter and remove outliers from the distribution
-    df_outliers_filtered = df[(df[col_name] >= lower_bound) & (df[col_name] <= upper_bound)]
+    df_outliers_filtered = df[(df[col_name] >= lower_bound) & (df[col_name] <= upper_bound)].reset_index(drop=True)
     
 
     return df_outliers_filtered
@@ -86,7 +86,8 @@ def plot_histogram(df, col_name, car_colour):
 def plot_scatter(df1, col1, df2, col2, title, xlabel, ylabel, alpha=0.5):
     """
     Function to plot a scatter plot of two columns from two aligned DataFrames.
-    parameters:
+    
+    Parameters:
     -----------
     df1: pandas dataframe
         First DataFrame (for the x-axis data)
@@ -105,7 +106,7 @@ def plot_scatter(df1, col1, df2, col2, title, xlabel, ylabel, alpha=0.5):
     alpha: float, optional
         Transparency level for scatter points (default is 0.5)
 
-    returns: 
+    Returns: 
     --------
     None
     """
@@ -123,3 +124,117 @@ def plot_scatter(df1, col1, df2, col2, title, xlabel, ylabel, alpha=0.5):
     
     plt.show()
     return None
+
+####################################################################################################
+
+def sample_data_randomly(df1, df2, sample_size):
+    """
+    Randomly samples two aligned DataFrames to reduce the size of the data.
+
+    parameters:
+    -----------
+    df1: pandas dataframe
+        First DataFrame to sample from
+    df2: pandas dataframe
+        Second DataFrame to sample from
+    sample_size: int
+        Number of rows to sample
+
+    returns:
+    --------
+    sampled_df1, sampled_df2: pandas dataframes
+        Randomly sampled DataFrames
+    """
+    # Align the DataFrames to ensure they have the same indices
+    aligned_df1, aligned_df2 = df1.align(df2, join='inner')
+    
+    # Perform random sampling
+    sampled_indices = aligned_df1.sample(n=sample_size, random_state=42).index
+    sampled_df1 = aligned_df1.loc[sampled_indices]
+    sampled_df2 = aligned_df2.loc[sampled_indices]
+    
+    return sampled_df1, sampled_df2
+
+####################################################################################################
+
+import seaborn as sns
+
+def plot_violin(df, x_col, y_col, title, xlabel, ylabel, color='skyblue'):
+    """
+    Function to create a violin plot for a given DataFrame and columns.
+    
+    Parameters:
+    -----------
+    df: pandas DataFrame
+        The DataFrame containing the data.
+    x_col: str
+        The name of the column for the x-axis.
+    y_col: str
+        The name of the column for the y-axis.
+    title: str
+        The title of the plot.
+    xlabel: str
+        The label for the x-axis.
+    ylabel: str
+        The label for the y-axis.
+    color: str, optional
+        The color of the plot (default is 'skyblue').
+
+    Returns:
+    --------
+    None
+    """
+    sns.violinplot(
+        data=df, 
+        x=x_col, 
+        y=y_col, 
+        inner='quartile',  # Adds quartile lines to the plot
+        #inner=None,
+        color=color
+    )
+
+    # Add labels and title
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    #plt.ylim(0, df[y_col].max())
+    plt.show()
+
+    return None
+
+####################################################################################################
+
+def plot_scatter(df, x_col, y_col, title, xlabel, ylabel):
+    """
+    Function to create a scatter plot for a given DataFrame and columns.
+    
+    Parameters:
+    -----------
+    df: pandas DataFrame
+        The DataFrame containing the data.
+    x_col: str
+        The name of the column for the x-axis.
+    y_col: str
+        The name of the column for the y-axis.
+    title: str
+        The title of the plot.
+    xlabel: str
+        The label for the x-axis.
+    ylabel: str
+        The label for the y-axis.
+    
+    Returns:
+    --------
+    None
+    """
+    # Create a scatter plot
+    sns.scatterplot(data=df, x=x_col, y=y_col, color='blue', alpha=0.6)
+
+    # Add labels and title
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.show()
+
+    return None
+
