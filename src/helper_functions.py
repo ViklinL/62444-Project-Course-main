@@ -80,3 +80,46 @@ def plot_histogram(df, col_name, car_colour):
     
     plt.show()
     return None
+
+####################################################################################################
+
+def plot_scatter(df1, col1, df2, col2, title, xlabel, ylabel, alpha=0.5):
+    """
+    Function to plot a scatter plot of two columns from two aligned DataFrames.
+    parameters:
+    -----------
+    df1: pandas dataframe
+        First DataFrame (for the x-axis data)
+    col1: str
+        Column name in the first DataFrame for the x-axis values
+    df2: pandas dataframe
+        Second DataFrame (for the y-axis data)
+    col2: str
+        Column name in the second DataFrame for the y-axis values
+    title: str
+        Title for the scatter plot
+    xlabel: str
+        Label for the x-axis
+    ylabel: str
+        Label for the y-axis
+    alpha: float, optional
+        Transparency level for scatter points (default is 0.5)
+
+    returns: 
+    --------
+    None
+    """
+    # Align the two DataFrames to ensure matching rows
+    aligned_df1, aligned_df2 = df1.align(df2, join='inner')
+    
+    # Scatter plot
+    plt.figure(figsize=(8, 5))
+    plt.scatter(aligned_df1[col1], aligned_df2[col2], alpha=alpha)
+    
+    # Add labels and title
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    
+    plt.show()
+    return None
