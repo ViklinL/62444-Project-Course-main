@@ -203,5 +203,79 @@ def plot_violin(df, x_col, y_col, title, xlabel, ylabel, color='skyblue'):
     return None
 
 ####################################################################################################
+from keplergl import KeplerGl
+import pandas as pd
 
+def kepler_map(df_trips, df_zones, time_window_hours=2, 
+                      pickup_datetime_column='tpep_pickup_datetime', 
+                      dropoff_datetime_column='tpep_dropoff_datetime'):
+    """
+    Creates a Kepler map for trips data with pickup and dropoff locations, and routes
+    for the specified time window.
+    
+    Parameters:
+    - df_trips: DataFrame containing trip data (yellow or green).
+    - df_zones: DataFrame containing the zones (location ID, lat, lng).
+    - time_window_hours: The time window in hours to filter trips (default is 2 hours).
+    - pickup_datetime_column: Name of the pickup datetime column (default is 'tpep_pickup_datetime').
+    - dropoff_datetime_column: Name of the dropoff datetime column (default is 'tpep_dropoff_datetime').
+    
+    Returns:
+    - KeplerGl map object
+    """
+    # Choosing a time window to visualize the data
+    start_time = df_trips[pickup_datetime_column].median()
+    end_time = start_time + pd.Timedelta(hours=time_window_hours)
+
+    # Filter trips data for trips within the time window
+    df_filtered = df_trips[
+        (df_trips[pickup_datetime_column] >= start_time) &
+        (df_trips[pickup_datetime_column] <= end_time)
+    ].copy()
+
+    # Ordering zones after LocationID index
+    df_zones_indexed = df_zones.set_index('LocationID')
+
+    # Map pickup and dropoff lat/lng values
+    df_filtered['pickup_lat'] = df_filtered['PULocationID'].map(df_zones_indexed['lat'])
+    df_filtered['pickup_lng'] = df_filtered['PULocationID'].map(df_zones_indexed['lng'])
+    df_filtered['dropoff_lat'] = df_filtered['DOLocationID'].map(df_zones_indexed['lat'])
+    df_filtered['dropoff_lng'] = df_filtered['DOLocationID'].map(df_zones_indexed['lng'])
+
+    # Create DataFrames for pickup and dropoff points
+    df_pickup = pd.DataFrame({
+        'lat': df_filtered['pickup_lat'],
+        'lng': df_filtered['pickup_lng'],
+        'type': 'pickup'  # Label as pickup
+    })
+
+    df_dropoff = pd.DataFrame({
+        'lat': df_filtered['dropoff_lat'],
+        'lng': df_filtered['dropoff_lng'],
+        'type': 'dropoff'  # Label as dropoff
+    })
+
+    # Remove rows with missing values
+    df_pickup = df_pickup.dropna(subset=['lat', 'lng'])
+    df_dropoff = df_dropoff.dropna(subset=['lat', 'lng'])
+
+    # Create DataFrame for routes between pickup and dropoff points
+    df_routes = pd.DataFrame({
+        'start_lat': df_filtered['pickup_lat'],
+        'start_lng': df_filtered['pickup_lng'],
+        'end_lat': df_filtered['dropoff_lat'],
+        'end_lng': df_filtered['dropoff_lng']
+    })
+    routes_data = df_routes.dropna(subset=['start_lat', 'start_lng', 'end_lat', 'end_lng']).copy()
+
+    # Create a Kepler map
+    map_1 = KeplerGl(height=600, width=800)
+    map_1.add_data(data=df_pickup, name='pickup')
+    map_1.add_data(data=df_dropoff, name='dropoff')
+    map_1.add_data(data=routes_data, name='routes')
+
+    # Return the Kepler map
+    return map_1
+
+####################################################################################################
 
