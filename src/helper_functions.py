@@ -279,3 +279,78 @@ def kepler_map(df_trips, df_zones, time_window_hours=2,
 
 ####################################################################################################
 
+def analyze_temporal_patterns(df, taxi_type):
+    """
+    Analyze temporal patterns for a given taxi dataset.
+    Args:
+        df (DataFrame): Taxi dataset.
+        taxi_type (str): Type of taxi ("Yellow" or "Green").
+    """
+    # Ensure that correct pickup and dropoff datetime columns are used for (Yellow or Green) taxi
+    if taxi_type.lower() == "yellow":
+        pickup_datetime_column = 'tpep_pickup_datetime'
+        dropoff_datetime_column = 'tpep_dropoff_datetime'
+    elif taxi_type.lower() == "green":
+        pickup_datetime_column = 'lpep_pickup_datetime'
+        dropoff_datetime_column = 'lpep_dropoff_datetime'
+    else:
+        raise ValueError("Invalid taxi type. Use 'Yellow' or 'Green'.")
+
+    # Convert pickup and dropoff times to datetime format
+    df['pickup_datetime'] = pd.to_datetime(df[pickup_datetime_column])
+    df['dropoff_datetime'] = pd.to_datetime(df[dropoff_datetime_column])
+    
+    # Extract temporal features
+    df['hour'] = df['pickup_datetime'].dt.hour
+    df['day_of_week'] = df['pickup_datetime'].dt.day_name()
+    df['month'] = df['pickup_datetime'].dt.month_name()
+    
+    # Number of rides by hour
+    hourly_rides = df.groupby('hour').size()
+    plt.figure(figsize=(10, 5))
+    sns.barplot(x=hourly_rides.index, y=hourly_rides.values, palette='coolwarm')
+    plt.title(f"Number of Rides by Hour ({taxi_type} Taxi)")
+    plt.xlabel("Hour of Day")
+    plt.ylabel("Number of Rides")
+    plt.show()
+    
+    # Number of rides by day of week
+    day_rides = df.groupby('day_of_week').size()
+    plt.figure(figsize=(10, 5))
+    sns.barplot(
+        x=day_rides.index, 
+        y=day_rides.values, 
+        palette='coolwarm', 
+        order=['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    )
+    plt.title(f"Number of Rides by Day of Week ({taxi_type} Taxi)")
+    plt.xlabel("Day of Week")
+    plt.ylabel("Number of Rides")
+    plt.show()
+    
+    # Number of rides by month
+    month_rides = df.groupby('month').size()
+    plt.figure(figsize=(10, 5))
+    sns.barplot(x=month_rides.index, y=month_rides.values, palette='coolwarm')
+    plt.title(f"Number of Rides by Month ({taxi_type} Taxi)")
+    plt.xlabel("Month")
+    plt.ylabel("Number of Rides")
+    plt.show()
+    
+    # Trip distance vs. hour
+    plt.figure(figsize=(10, 5))
+    sns.boxplot(x='hour', y='trip_distance', data=df, palette='coolwarm')
+    plt.title(f"Trip Distance by Hour of Day ({taxi_type} Taxi)")
+    plt.xlabel("Hour of Day")
+    plt.ylabel("Trip Distance")
+    plt.show()
+    
+    # Fare amount vs. hour
+    plt.figure(figsize=(10, 5))
+    sns.boxplot(x='hour', y='fare_amount', data=df, palette='coolwarm')
+    plt.title(f"Fare Amount by Hour of Day ({taxi_type} Taxi)")
+    plt.xlabel("Hour of Day")
+    plt.ylabel("Fare Amount")
+    plt.show()
+
+####################################################################################################
