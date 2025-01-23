@@ -25,13 +25,12 @@ def  filter_outliers(df, col_name):
     # Define lower and upper bounds for the distribution
     upper_bound = Q3 + 1.5 * IQR
 
-    # Lower bound is defined as 0, for the fare amount cannot be negative
+    # Lower bound is defined as 0
     lower_bound = 0
 
     # Filter and remove outliers from the distribution
     df_outliers_filtered = df[(df[col_name] >= lower_bound) & (df[col_name] <= upper_bound)].reset_index(drop=True)
     
-
     return df_outliers_filtered
 
 ####################################################################################################
@@ -39,22 +38,27 @@ def  filter_outliers(df, col_name):
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plot_histogram(df, col_name, car_colour):
+def plot_histogram(df, col_name, car_colour, bins=None, rwidth=0.7):
     """
-    Function to plot the histogram of a given column
-    parameters:
-    -----------
-    df: pandas dataframe
-
-    col_name: name of the column to plot the histogram for
+    Function to plot the histogram of a given column with enhanced clarity and design.
     
-    car_colour: color of the car (used in the plot title)
+    Parameters:
+    -----------
+    df: pandas DataFrame
+        The DataFrame containing the data.
+    col_name: str
+        Name of the column to plot the histogram for.
+    car_colour: str
+        Color of the car (used in the plot title).
+    bins: int or None, optional
+        Number of bins for the histogram. If None, a dynamic binning strategy is applied (default is None).
+    rwidth: float, optional
+        Relative width of the bars.
 
-    returns: 
+    Returns: 
     --------
     None
     """
-
     plt.figure(figsize=(8, 5))
 
     if col_name == 'passenger_count':
@@ -65,27 +69,48 @@ def plot_histogram(df, col_name, car_colour):
         bins = range(min_value, max_value + 2)
         
         # Plot histogram aligned to the left edge of each integer bin
-        plt.hist(df[col_name], bins=bins, edgecolor='black', align='left')
+        counts, edges, patches = plt.hist(
+            df[col_name], bins=bins, edgecolor='black', align='left', color='steelblue', alpha=0.8
+        )
+        
+        # Find the peak bin (highest frequency) and highlight it
+        max_bin_index = np.argmax(counts)
+        patches[max_bin_index].set_facecolor('orange')  # Highlight the peak bin
         
         # Force the x-axis to show integer ticks
         plt.xticks(np.arange(min_value, max_value + 1, 1))
     else:
-        # For continuous or non-integer columns, use 100 bins
-        plt.hist(df[col_name], bins=100, edgecolor='black')
-    
-    # Add labels and title
-    plt.title(f'Distribution of {col_name} for the {car_colour} car')
-    plt.xlabel(col_name)
-    plt.ylabel('Frequency')
-    
+        data_range = df[col_name].max() - df[col_name].min()
+
+        if bins is None:
+            # Calculate bins dynamically for continuous data
+            min_bin_width = 0.25  # Set a minimum bin width for continuous data
+            bins = int(data_range / min_bin_width)
+            bins = min(bins, 18)  # Cap the maximum number of bins to 41 for better visuals
+
+        # Plot the histogram
+        counts, edges, patches = plt.hist(
+            df[col_name], bins=bins, edgecolor='black', color='steelblue', alpha=0.8, rwidth=rwidth
+        )
+        
+        # Find the peak bin (highest frequency) and highlight it
+        max_bin_index = np.argmax(counts)
+        patches[max_bin_index].set_facecolor('orange')  # Highlight the peak bin
+
+    plt.grid(axis='y', linestyle='--', alpha=0.6)
+    plt.xlabel(col_name, fontsize=12)
+    plt.ylabel('Frequency', fontsize=12)
+    plt.title(f'Distribution of {col_name} for the {car_colour} car', fontsize=14)
+
     plt.show()
     return None
 
+
 ####################################################################################################
 
-def plot_scatter(df1, col1, df2, col2, title, xlabel, ylabel, alpha=0.5):
+def plot_scatter(df1, col1, df2, col2, title, xlabel, ylabel, alpha=0.5, use_hexbin=False, bins='log'):
     """
-    Function to plot a scatter plot of two columns from two aligned DataFrames.
+    Function to plot a scatter plot or hexbin plot of two columns from two aligned DataFrames.
     
     Parameters:
     -----------
@@ -98,13 +123,17 @@ def plot_scatter(df1, col1, df2, col2, title, xlabel, ylabel, alpha=0.5):
     col2: str
         Column name in the second DataFrame for the y-axis values
     title: str
-        Title for the scatter plot
+        Title for the scatter/hexbin plot
     xlabel: str
         Label for the x-axis
     ylabel: str
         Label for the y-axis
     alpha: float, optional
         Transparency level for scatter points (default is 0.5)
+    use_hexbin: bool, optional
+        If True, creates a hexbin plot instead of a scatter plot (default is False).
+    bins: str or int, optional
+        Binning strategy for hexbin plots (default is 'log').
 
     Returns: 
     --------
@@ -113,17 +142,28 @@ def plot_scatter(df1, col1, df2, col2, title, xlabel, ylabel, alpha=0.5):
     # Align the two DataFrames to ensure matching rows
     aligned_df1, aligned_df2 = df1.align(df2, join='inner')
     
-    # Scatter plot
+    # Initialize the plot
     plt.figure(figsize=(8, 5))
-    plt.scatter(aligned_df1[col1], aligned_df2[col2], alpha=alpha)
     
-    # Add labels and title
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
+    if use_hexbin:
+        # Hexbin plot for dense areas
+        plt.hexbin(aligned_df1[col1], aligned_df2[col2], gridsize=50, cmap='Blues', bins=bins)
+        plt.colorbar(label='Density (log scale)' if bins == 'log' else 'Density')
+    else:
+        # Scatter plot with transparency
+        plt.scatter(aligned_df1[col1], aligned_df2[col2], alpha=alpha, color='blue', edgecolor='w', linewidth=0.5)
     
+    # Add labels, title, and gridlines
+    plt.title(title, fontsize=14)
+    plt.xlabel(xlabel, fontsize=12)
+    plt.ylabel(ylabel, fontsize=12)
+    plt.grid(alpha=0.3, linestyle='--')  # Subtle gridlines for easier interpretation
+    
+    # Show the plot
     plt.show()
+    
     return None
+
 
 ####################################################################################################
 
@@ -158,6 +198,59 @@ def sample_data_randomly(df1, df2, sample_size):
 ####################################################################################################
 
 import seaborn as sns
+
+def plot_boxplot(df, x_col, y_col, title, xlabel, ylabel, color='skyblue', showfliers=True):
+    """
+    Function to create a boxplot for a given DataFrame and columns.
+    
+    Parameters:
+    -----------
+    df: pandas DataFrame
+        The DataFrame containing the data.
+    x_col: str
+        The name of the column for the x-axis.
+    y_col: str
+        The name of the column for the y-axis.
+    title: str
+        The title of the plot.
+    xlabel: str
+        The label for the x-axis.
+    ylabel: str
+        The label for the y-axis.
+    color: str, optional
+        The color of the boxes (default is 'skyblue').
+    showfliers: bool, optional
+        Whether to display outliers on the boxplot (default is True).
+
+    Returns:
+    --------
+    None
+    """
+    # Create the boxplot with the specified color and option to hide outliers
+    sns.boxplot(
+        data=df, 
+        x=x_col, 
+        y=y_col, 
+        color=color,  # Set the box color
+        showfliers=showfliers  # Control whether outliers are shown
+    )
+
+    # Add subtle gridlines for better comparison
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+
+    # Add labels and a concise title
+    plt.title(title, fontsize=14)
+    plt.xlabel(xlabel, fontsize=12)
+    plt.ylabel(ylabel, fontsize=12)  
+
+    # Display the plot
+    plt.show()
+
+    return None
+
+
+####################################################################################################
+
 
 def plot_violin(df, x_col, y_col, title, xlabel, ylabel, color='skyblue'):
     """
@@ -339,7 +432,7 @@ def analyze_temporal_patterns(df, taxi_type):
     
     # Trip distance vs. hour
     plt.figure(figsize=(10, 5))
-    sns.boxplot(x='hour', y='trip_distance', data=df, palette='coolwarm')
+    sns.boxplot(x='hour', y='trip_distance', data=df, palette='coolwarm', showfliers=False)
     plt.title(f"Trip Distance by Hour of Day ({taxi_type} Taxi)")
     plt.xlabel("Hour of Day")
     plt.ylabel("Trip Distance")
@@ -347,7 +440,7 @@ def analyze_temporal_patterns(df, taxi_type):
     
     # Fare amount vs. hour
     plt.figure(figsize=(10, 5))
-    sns.boxplot(x='hour', y='fare_amount', data=df, palette='coolwarm')
+    sns.boxplot(x='hour', y='fare_amount', data=df, palette='coolwarm', showfliers=False)
     plt.title(f"Fare Amount by Hour of Day ({taxi_type} Taxi)")
     plt.xlabel("Hour of Day")
     plt.ylabel("Fare Amount")
