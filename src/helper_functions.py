@@ -290,7 +290,6 @@ def plot_violin(df, x_col, y_col, title, xlabel, ylabel, color='skyblue'):
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    #plt.ylim(0, df[y_col].max())
     plt.show()
 
     return None
