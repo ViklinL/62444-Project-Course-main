@@ -421,10 +421,23 @@ def analyze_temporal_patterns(df, taxi_type):
     plt.show()
     
     # Number of rides by month
-    month_rides = df.groupby('month').size()
+
+    # Define the order of months
+    month_order = ['January', 'February']
+
+    # Filter the data to include only January and February
+    month_rides = df[df['month'].isin(month_order)].groupby('month').size()
+
+    # Convert the month index to a categorical type with the correct order
+    month_rides.index = pd.Categorical(month_rides.index, categories=month_order, ordered=True)
+
+    # Sort by the specified order
+    month_rides = month_rides.sort_index()
+
+    # Plot the barplot
     plt.figure(figsize=(10, 5))
     sns.barplot(x=month_rides.index, y=month_rides.values, palette='coolwarm')
-    plt.title(f"Number of Rides by Month ({taxi_type} Taxi)")
+    plt.title(f"Number of Rides in January and February ({taxi_type} Taxi)")
     plt.xlabel("Month")
     plt.ylabel("Number of Rides")
     plt.show()
